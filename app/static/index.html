@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Синхронизатор заявок</title>
+<link rel="stylesheet" href="/static/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+</head>
+<body>
+<div class="app">
+
+  <!-- ЛЕВАЯ ПАНЕЛЬ: УПРАВЛЕНИЕ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand__mark">OS</div>
+      <div class="brand__text">
+        <strong>Синхронизатор</strong>
+        <span>заявок · orders sync</span>
+      </div>
+    </div>
+
+    <nav class="controls">
+      <p class="controls__label">Действия</p>
+
+      <button class="btn btn--primary" data-action="sync">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg>
+        <span>Синхронизировать</span>
+      </button>
+
+      <button class="btn" data-action="reload">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+        <span>Показать результат</span>
+      </button>
+
+      <button class="btn" data-action="health">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Диагностика</span>
+      </button>
+
+      <button class="btn" data-action="rejected">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        <span>Отклонённые</span>
+        <em class="btn__badge" data-badge="rejected" hidden>0</em>
+      </button>
+
+      <p class="controls__label">Вид</p>
+
+      <button class="btn btn--ghost" data-action="view" data-view="table">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>
+        <span>Таблица клиентов</span>
+      </button>
+
+      <button class="btn btn--ghost" data-action="view" data-view="json">
+        <svg viewBox="0 0 24 24"><path d="M8 6c-2 0-2 3-4 6 2 3 2 6 4 6M16 6c2 0 2 3 4 6-2 3-2 6-4 6"/></svg>
+        <span>Сырой JSON</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__footer">
+      <label class="switch">
+        <input type="checkbox" id="autorefresh">
+        <span class="switch__track"><span class="switch__thumb"></span></span>
+        <span class="switch__text">Автосинхронизация<br><small>каждые 60 секунд</small></span>
+      </label>
+
+      <div class="status" data-role="status">
+        <span class="status__dot"></span>
+        <span class="status__text">Не проверялось</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ПРАВАЯ ПАНЕЛЬ: ВЫВОД -->
+  <main class="content">
+    <header class="content__head">
+      <div>
+        <h1>Результат синхронизации</h1>
+        <p class="muted" data-role="meta">Нажмите «Синхронизировать», чтобы забрать заявки</p>
+      </div>
+      <div class="content__time">
+        <span class="muted">Обновлено</span>
+        <strong data-role="synced">—</strong>
+      </div>
+    </header>
+
+    <section class="stats" data-role="stats">
+      <article class="stat" data-tone="violet">
+        <span class="stat__label">Получено</span>
+        <strong class="stat__value" data-stat="received">—</strong>
+        <span class="stat__hint">заявок из источника</span>
+      </article>
+      <article class="stat" data-tone="emerald">
+        <span class="stat__label">Уникальных</span>
+        <strong class="stat__value" data-stat="unique">—</strong>
+        <span class="stat__hint">после дедупликации</span>
+      </article>
+      <article class="stat" data-tone="amber">
+        <span class="stat__label">Дублей</span>
+        <strong class="stat__value" data-stat="duplicates_merged">—</strong>
+        <span class="stat__hint">схлопнуто по телефону</span>
+      </article>
+      <article class="stat" data-tone="rose">
+        <span class="stat__label">Отброшено</span>
+        <strong class="stat__value" data-stat="invalid_dropped">—</strong>
+        <span class="stat__hint">невалидные телефоны</span>
+      </article>
+    </section>
+
+    <section class="panel" data-panel="table">
+      <div class="panel__head">
+        <h2>Клиенты</h2>
+        <div class="panel__tools">
+          <input class="search" type="search" id="search" placeholder="Поиск по имени, телефону, почте">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:52px">#</th>
+              <th>Клиент</th>
+              <th>Телефон</th>
+              <th>E-mail</th>
+              <th class="num">Сумма</th>
+            </tr>
+          </thead>
+          <tbody data-role="rows"></tbody>
+        </table>
+        <div class="empty" data-role="empty" hidden>
+          <div class="empty__icon">📭</div>
+          <p>Пока нет данных</p>
+          <span>Запустите синхронизацию, чтобы получить список клиентов</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="json" hidden>
+      <div class="panel__head">
+        <h2>JSON ответа</h2>
+        <button class="btn btn--mini" data-action="copy">Скопировать</button>
+      </div>
+      <pre class="code" data-role="json">{ }</pre>
+    </section>
+
+    <section class="panel" data-panel="rejected" hidden>
+      <div class="panel__head">
+        <h2>Отклонённые заявки</h2>
+        <span class="pill" data-role="rejected-count">0</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th style="width:52px">ID</th><th>Исходный телефон</th><th>Клиент</th><th>Причина</th></tr>
+          </thead>
+          <tbody data-role="rejected-rows"></tbody>
+        </table>
+        <div class="empty" data-role="rejected-empty" hidden>
+          <div class="empty__icon">✅</div>
+          <p>Отклонённых заявок нет</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toasts" data-role="toasts"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
